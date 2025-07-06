@@ -1,13 +1,10 @@
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ready_hire/core/extensions/text_extention.dart';
-import 'package:ready_hire/core/routes_manager/routes_manager.dart';
 import 'package:ready_hire/features/auth/presentation/authentication/test/SimpleTestPage.dart';
-import 'package:ready_hire/features/auth/presentation/authentication/test/quiz_app.dart';
 
 import '../../../../../core/resources/dialog_utils.dart';
 import '../../../../../data/firebase_service/firebase_service.dart';
@@ -311,7 +308,8 @@ class _SignUpAsEmployeeState extends State<SignUpAsEmployee> {
                     if (_formKey.currentState!.validate()) {
                       DialogUtils.showLoadingDialog(
                           context, message: "Signing up...");
-                      String result = await FirebaseServices.signupUser(
+                      String result = await FirebaseServices
+                          .signupUserAsEmployee(
                         email: emailController.text.trim(),
                         password: passwordController.text.trim(),
                         name: fullNameController.text.trim(),

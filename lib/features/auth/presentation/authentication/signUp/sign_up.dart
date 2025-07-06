@@ -88,6 +88,13 @@ class _SignInState extends State<SignUp> {
                       ),
                       SizedBox(height: 16.h),
                       CustomTextFormField(
+                        validator: (value) {
+                          if (value == null || value.isEmpty)
+                            return "Please enter password";
+                          if (value.length < 6)
+                            return "Password must be at least 6 characters";
+                          return null;
+                        },
                         controller: passwordController,
                         isSecure: secure,
                         label: "Password",

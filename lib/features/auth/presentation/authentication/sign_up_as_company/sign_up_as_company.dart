@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 
-import '../../../../../core/routes_manager/routes_manager.dart';
-
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:ready_hire/core/resources/dialog_utils.dart';
+import 'package:ready_hire/data/firebase_service/firebase_service.dart';
+import 'package:ready_hire/features/auth/presentation/authentication/signIn/sign_in.dart';
 
 class SignUpAsCompany extends StatefulWidget {
   @override
@@ -21,7 +22,7 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
   final TextEditingController linkedinController =
-  TextEditingController(); // حقل LinkedIn
+      TextEditingController(); // حقل LinkedIn
 
   File? _image;
   String? _uploadedFileName;
@@ -43,7 +44,8 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
 
   void _updateButtonState() {
     setState(() {
-      isButtonEnabled = fullNameController.text.isNotEmpty &&
+      isButtonEnabled =
+          fullNameController.text.isNotEmpty &&
           nickNameController.text.isNotEmpty &&
           emailController.text.isNotEmpty &&
           passwordController.text.isNotEmpty &&
@@ -82,7 +84,7 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
     if (pickedDate != null) {
       setState(() {
         dateController.text =
-        "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
+            "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
         _updateButtonState();
       });
     }
@@ -97,7 +99,7 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
     passwordController.addListener(_updateButtonState);
     phoneController.addListener(_updateButtonState);
     dateController.addListener(_updateButtonState);
-    linkedinController.addListener(_updateButtonState); // مراقبة حقل LinkedIn
+    linkedinController.addListener(_updateButtonState);
   }
 
   @override
@@ -172,6 +174,13 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
                 ),
                 SizedBox(height: 15),
                 buildTextField(
+                  validator: (value) {
+                    if (value == null || value.isEmpty)
+                      return "Please enter password";
+                    if (value.length < 6)
+                      return "Password must be at least 6 characters";
+                    return null;
+                  },
                   controller: passwordController,
                   labelText: 'Password',
                   prefixIcon: Icons.lock,
@@ -201,10 +210,8 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Text(
-                              _uploadedFileName ??
-                                  'Upload Company Data',
-                              overflow: TextOverflow
-                                  .ellipsis,
+                              _uploadedFileName ?? 'Upload Company Data',
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
@@ -222,20 +229,21 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
                         setState(() {
                           selectedFlag = newFlag!;
                           selectedCountryCode = countries.firstWhere(
-                                  (country) =>
-                              country['flag'] == newFlag)['code']!;
+                            (country) => country['flag'] == newFlag,
+                          )['code']!;
                           _updateButtonState();
                         });
                       },
                       items: countries
-                          .map((country) =>
-                          DropdownMenuItem<String>(
-                            value: country['flag'],
-                            child: Text(
-                              country['flag']!,
-                              style: TextStyle(fontSize: 24),
+                          .map(
+                            (country) => DropdownMenuItem<String>(
+                              value: country['flag'],
+                              child: Text(
+                                country['flag']!,
+                                style: TextStyle(fontSize: 24),
+                              ),
                             ),
-                          ))
+                          )
                           .toList(),
                     ),
                     SizedBox(width: 10),
@@ -251,21 +259,39 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
                 ),
                 SizedBox(height: 15),
 
-
                 ElevatedButton(
                   onPressed: isButtonEnabled
-                      ? () {
-                    if (_formKey.currentState!.validate()) {
-                      Navigator.pushNamed(context, RoutesManager.signIn);
-                    }
-                  }
+                      ? () async {
+                          if (_formKey.currentState!.validate()) {
+                            DialogUtils.showLoadingDialog(
+                              context,
+                              message: "Signing up...",
+                            );
+                            String result =
+                                await FirebaseServices.signupUserAsCompany(
+                                  email: emailController.text.trim(),
+                                  password: passwordController.text.trim(),
+                                  companyName: fullNameController.text.trim(),
+                                  phone: phoneController.text.trim(),
+                                  linkedin: linkedinController.text.trim(),
+                                );
+
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => SignIn()),
+                            );
+                          }
+                        }
                       : null,
                   child: Text(
-                    'Continue', style: TextStyle(color: Colors.white),),
+                    'Continue',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 50),
-                    backgroundColor:
-                    isButtonEnabled ? Colors.blue : Colors.grey,
+                    backgroundColor: isButtonEnabled
+                        ? Colors.blue
+                        : Colors.grey,
                   ),
                 ),
               ],
@@ -286,8 +312,10 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
     bool obscureText = false,
     bool readOnly = false,
     Function()? onTap,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
+      validator: validator,
       controller: controller,
       readOnly: readOnly,
       onTap: onTap,
@@ -310,9 +338,7 @@ class _SignUpAsCompanyState extends State<SignUpAsCompany> {
   }) {
     return InputDecoration(
       labelText: labelText,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
       prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
       suffixIcon: suffixIcon != null ? Icon(suffixIcon) : null,
       prefixText: prefixText,

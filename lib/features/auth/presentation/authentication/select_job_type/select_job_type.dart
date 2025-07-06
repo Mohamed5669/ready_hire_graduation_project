@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:ready_hire/provider/job_type_provider.dart';
 
 import '../../../../../core/resources/assets_manager.dart';
 import '../../../../../core/routes_manager/routes_manager.dart';
@@ -13,9 +15,10 @@ class SelectJobTypePage extends StatefulWidget {
 
 class _SelectJobTypePageState extends State<SelectJobTypePage> {
   bool isFindJobSelected = true;
-
   @override
   Widget build(BuildContext context) {
+    final jobProvider = Provider.of<JobTypeProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -61,27 +64,23 @@ class _SelectJobTypePageState extends State<SelectJobTypePage> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      setState(() {
-                        isFindJobSelected = true;
-                      });
+                      jobProvider.selectFindJob();
                     },
                     child: OptionCard(
                       icon: Icons.work_outline,
                       label: "Find a Job",
-                      isSelected: isFindJobSelected,
+                      isSelected: jobProvider.isFindJobSelected,
                     ),
                   ),
                   SizedBox(width: 1.w),
                   GestureDetector(
                     onTap: () {
-                      setState(() {
-                        isFindJobSelected = false;
-                      });
+                      jobProvider.selectFindEmployee();
                     },
                     child: OptionCard(
                       icon: Icons.person_outline,
                       label: "Find an Employee",
-                      isSelected: !isFindJobSelected,
+                      isSelected: !jobProvider.isFindJobSelected,
                     ),
                   ),
                 ],
@@ -89,11 +88,13 @@ class _SelectJobTypePageState extends State<SelectJobTypePage> {
               SizedBox(height: 20.h),
               ElevatedButton(
                 onPressed: () {
-                  if (isFindJobSelected) {
+                  if (jobProvider.isFindJobSelected) {
                     Navigator.pushNamed(
-                        context, RoutesManager.signUpAsEmployee);
-                  } else {
+                      context,
+                      RoutesManager.signUpAsEmployee,
+                    )} else {
                     Navigator.pushNamed(context, RoutesManager.signUpAsCompany);
+
                   }
                 },
                 child: Text(
@@ -101,6 +102,8 @@ class _SelectJobTypePageState extends State<SelectJobTypePage> {
 
                 ),
               ),
+
+
               SizedBox(height: 20.h),
             ],
           ),

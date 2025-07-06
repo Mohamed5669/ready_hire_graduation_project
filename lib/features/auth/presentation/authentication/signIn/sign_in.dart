@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -140,16 +141,81 @@ class _SignInState extends State<SignIn> {
                             Navigator.pop(context);
 
                             if (result == "success") {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                RoutesManager.home,
-                              );
-                            } else {
-                              DialogUtils.showLoadingDialog(
-                                context,
-                                message: result,
-                              );
+                              try {
+                                final user = FirebaseAuth.instance.currentUser;
+                                final uid = user!.uid;
+
+                                final userDoc = await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(uid)
+                                    .get();
+
+                                if (userDoc.exists &&
+                                    userDoc.data()!.containsKey('type')) {
+                                  final userType = userDoc['type'];
+
+                                  if (userType == 'employee') {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      RoutesManager.home,
+                                    );
+                                  } else {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      RoutesManager.home2,
+                                    );
+                                  }
+                                } else {
+                                  final companyDoc = await FirebaseFirestore
+                                      .instance
+                                      .collection('companies')
+                                      .doc(uid)
+                                      .get();
+
+                                  if (companyDoc.exists &&
+                                      companyDoc.data()!.containsKey('type')) {
+                                    final userType = companyDoc['type'];
+
+                                    if (userType == 'company') {
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        RoutesManager.home2,
+                                      );
+                                    } else {
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        RoutesManager.home,
+                                      );
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text("User type not found."),
+                                      ),
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "Error fetching user data: $e",
+                                    ),
+                                  ),
+                                );
+                              }
                             }
+
+                            // if (result == "success") {
+                            //   Navigator.pushReplacementNamed(
+                            //     context,
+                            //     RoutesManager.home,
+                            //   );
+                            // } else {
+                            DialogUtils.showLoadingDialog(
+                              context,
+                              message: result,
+                            );
                           }
                         },
                       ),
@@ -176,17 +242,23 @@ class _SignInState extends State<SignIn> {
                           SizedBox(width: 20.w),
                           CustomButton(
                             onTap: () async {
-                              DialogUtils.showLoadingDialog(context,
-                                  message: "Signing in with Google...");
-                              String result = await FirebaseServices
-                                  .signInWithGoogle();
+                              DialogUtils.showLoadingDialog(
+                                context,
+                                message: "Signing in with Google...",
+                              );
+                              String result =
+                                  await FirebaseServices.signInWithGoogle();
                               Navigator.pop(context);
                               if (result == "success") {
                                 Navigator.pushReplacementNamed(
-                                    context, RoutesManager.home);
+                                  context,
+                                  RoutesManager.home,
+                                );
                               } else {
                                 DialogUtils.showLoadingDialog(
-                                    context, message: result);
+                                  context,
+                                  message: result,
+                                );
                               }
                             },
                             imagePath: 'assets/images/google_icon.png',
@@ -199,10 +271,7 @@ class _SignInState extends State<SignIn> {
                         children: [
                           Text(
                             "Don't have an account?",
-                            style: Theme
-                                .of(context)
-                                .textTheme
-                                .bodySmall,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                           CustomTextButton(
                             title: "Sign Up",

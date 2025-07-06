@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:ready_hire/features/auth/presentation/authentication/forget_password/forget.dart';
+import 'package:ready_hire/features/home/presentation/home2.dart';
 
 import '../../features/auth/presentation/authentication/privacy/privacy.dart';
 import '../../features/auth/presentation/authentication/select_job_type/select_job_type.dart';
@@ -10,8 +11,8 @@ import '../../features/auth/presentation/authentication/sign_up_as_company/sign_
 import '../../features/auth/presentation/authentication/sign_up_as_employee/sign_up_as_employee.dart';
 import '../../features/home/presentation/home.dart';
 import '../../features/onboarding/presentation/onboarding/onboarding.dart';
-import '../../features/auth/presentation/authentication/signIn/sign_in.dart';
 import '../../features/splash/splash_screen.dart';
+
 
 class RoutesManager {
   static const String splash = "/splash";
@@ -25,6 +26,8 @@ class RoutesManager {
   static const String signUpAsEmployee = "/signUpAsEmployee";
   static const String signUpAsCompany = "/signUpAsCompany";
   static const String home = "/home";
+  static const String home2 = "/home2";
+
 
   static Route? router(RouteSettings settings) {
     switch (settings.name) {
@@ -42,18 +45,24 @@ class RoutesManager {
         return CupertinoPageRoute(builder: (context) => SignUpAsCompany());
       case selectJob:
         return CupertinoPageRoute(
-          builder: (context) => const SelectJobTypePage(),
-        );
+            builder: (context) => const SelectJobTypePage());
       case privacy:
         return CupertinoPageRoute(
-          builder: (context) => const PrivacyPoliciesPage(),
-        );
+            builder: (context) => const PrivacyPoliciesPage());
       case signIn:
         return CupertinoPageRoute(builder: (context) => const SignIn());
       case forgetPassword:
-        return CupertinoPageRoute(builder: (context) => ForgetPassword());
+        return CupertinoPageRoute(
+          builder: (context) => ForgetPassword(),
+        );
       case home:
-        return CupertinoPageRoute(builder: (context) => const Home());
+        return CupertinoPageRoute(
+          builder: (context) => const Home(),
+        );
+      case home2:
+        return CupertinoPageRoute(
+          builder: (context) => const Home2(),
+        );
     }
   }
 }

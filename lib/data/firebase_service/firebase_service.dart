@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -6,7 +7,7 @@ class FirebaseServices {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  static Future<String> signupUser({
+  static Future<String> signupUserAsEmployee({
     required String email,
     required String password,
     required String name,
@@ -31,6 +32,48 @@ class FirebaseServices {
           'email': email,
           'gender': gender,
           'phone': phone,
+          'type': 'employee',
+        });
+
+        res = "success";
+      } else {
+        res = "Please fill in all fields";
+      }
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  static Future<String> signupUserAsCompany({
+    required String email,
+    required String password,
+    required String companyName,
+    required String phone,
+    required String linkedin,
+  }) async {
+    String res = "Some error occurred";
+    try {
+      if (email.isNotEmpty &&
+          password.isNotEmpty &&
+          companyName.isNotEmpty &&
+          phone.isNotEmpty &&
+          linkedin.isNotEmpty) {
+        UserCredential cred = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
+        await FirebaseFirestore.instance
+            .collection('companies')
+            .doc(cred.user!.uid)
+            .set({
+          'companyName': companyName,
+          'email': email,
+          'linkedin': linkedin,
+          'uid': cred.user!.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+          'type': 'company',
         });
 
         res = "success";
@@ -77,24 +120,21 @@ class FirebaseServices {
       }
 
       final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      await googleUser.authentication;
 
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      UserCredential userCredential = await _auth.signInWithCredential(
-        credential,
-      );
+      UserCredential userCredential =
+      await _auth.signInWithCredential(credential);
 
       final User? user = userCredential.user;
 
       if (user != null) {
-        final userDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .get();
+        final userDoc =
+        await _firestore.collection('users').doc(user.uid).get();
 
         if (!userDoc.exists) {
           await _firestore.collection("users").doc(user.uid).set({
@@ -116,4 +156,6 @@ class FirebaseServices {
       return e.toString();
     }
   }
+
+
 }
